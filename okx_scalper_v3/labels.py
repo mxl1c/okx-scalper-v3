@@ -37,7 +37,7 @@ FAIL_TAGS: frozenset[str] = frozenset(
 # name -> description. Values are written as strings in the offline table.
 LABEL_FIELD_DICTIONARY: dict[str, str] = {
     "ts_utc": "UTC timestamp of the decision bar close (ISO-8601).",
-    "symbol": "Instrument id, e.g. BTC-USDT-SWAP.",
+    "symbol": "Instrument id, e.g. DOGE-USDT-SWAP (pool excludes BTC/ETH).",
     "timeframe": "Signed bar size. Always 5m.",
     "feature_n": "Signed lookback. Always 48.",
     "atr_pct": "ATR / close over the feature window.",

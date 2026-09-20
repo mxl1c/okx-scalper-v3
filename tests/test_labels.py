@@ -104,7 +104,7 @@ def test_build_label_row_roundtrip(trend_up_bars) -> None:
     geo = valid_long()
     row = build_label_row(
         ts_utc="2026-01-01T00:00:00+00:00",
-        symbol="BTC-USDT-SWAP",
+        symbol="DOGE-USDT-SWAP",
         features=features,
         regime=regime,
         geo=geo,

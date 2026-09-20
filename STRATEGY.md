@@ -132,7 +132,7 @@ side'  = short
 | 字段 | 说明 |
 | --- | --- |
 | `ts_utc` | 决策 K 收盘 UTC，ISO-8601 |
-| `symbol` | 标的，如 `BTC-USDT-SWAP` |
+| `symbol` | 标的，如 `DOGE-USDT-SWAP`（池排除 BTC/ETH） |
 | `timeframe` | 固定 `5m` |
 | `feature_n` | 固定 `48` |
 | `atr_pct` | ATR / close |

@@ -41,6 +41,9 @@ def test_strategy_and_risk_docs_exist_and_lock_numbers() -> None:
         assert token in strategy
     for token in ("stop_out", "fake_break", "regime_wrong", "fee_grind", "early_lock"):
         assert token in strategy
+    assert "DOGE-USDT-SWAP" in strategy
+    assert "BTC-USDT-SWAP" not in strategy
+    assert "ETH-USDT-SWAP" not in strategy
     assert "数值边界见 RISK §软参" in strategy
     assert "flatten-all" in strategy
     assert "只禁止新开仓" in strategy or "只禁止新开" in strategy
