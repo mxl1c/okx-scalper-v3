@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "okx-scalper-v3"
+version = "3.0.0"
+description = "Signed offline strategy scaffold for okx-scalper-v3 (no live trading)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "okx-scalper-v3" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["okx_scalper_v3*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

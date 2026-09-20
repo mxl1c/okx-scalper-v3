@@ -1,0 +1,42 @@
+# secrets / credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*secret*
+*secrets*
+okx_api_key*
+okx_api_secret*
+OKX_*.txt
+id_rsa*
+credentials.json
+service-account*.json
+
+# logs
+logs/
+*.log
+*.log.*
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

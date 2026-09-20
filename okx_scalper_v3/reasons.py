@@ -1,0 +1,45 @@
+"""Reject / accept reason codes. Keep in sync with STRATEGY.md."""
+
+from __future__ import annotations
+
+from enum import Enum
+
+
+class ReasonCode(str, Enum):
+    OK = "OK"
+    REJECT_CHAOS = "REJECT_CHAOS"
+    REJECT_PARALLEL = "REJECT_PARALLEL"
+    REJECT_PER_TRADE_RISK = "REJECT_PER_TRADE_RISK"
+    REJECT_AGGREGATE_RISK = "REJECT_AGGREGATE_RISK"
+    REJECT_DAILY_LOSS = "REJECT_DAILY_LOSS"
+    REJECT_MIN_RR = "REJECT_MIN_RR"
+    REJECT_CHASE = "REJECT_CHASE"
+    REJECT_SL_FLOOR = "REJECT_SL_FLOOR"
+    REJECT_COOLDOWN = "REJECT_COOLDOWN"
+    REJECT_GIVEBACK_NOT_ARMED = "REJECT_GIVEBACK_NOT_ARMED"
+    REJECT_GIVEBACK_FEE_LOSS = "REJECT_GIVEBACK_FEE_LOSS"
+    REJECT_GEOMETRY = "REJECT_GEOMETRY"
+    REJECT_MACD_REGIME = "REJECT_MACD_REGIME"
+    REJECT_SOFT_PARAM = "REJECT_SOFT_PARAM"
+    REJECT_SIDE = "REJECT_SIDE"
+    REJECT_INSUFFICIENT_BARS = "REJECT_INSUFFICIENT_BARS"
+
+
+ENTRY_REJECT_CODES: frozenset[ReasonCode] = frozenset(
+    {
+        ReasonCode.REJECT_CHAOS,
+        ReasonCode.REJECT_PARALLEL,
+        ReasonCode.REJECT_PER_TRADE_RISK,
+        ReasonCode.REJECT_AGGREGATE_RISK,
+        ReasonCode.REJECT_DAILY_LOSS,
+        ReasonCode.REJECT_MIN_RR,
+        ReasonCode.REJECT_CHASE,
+        ReasonCode.REJECT_SL_FLOOR,
+        ReasonCode.REJECT_COOLDOWN,
+        ReasonCode.REJECT_GEOMETRY,
+        ReasonCode.REJECT_MACD_REGIME,
+        ReasonCode.REJECT_SOFT_PARAM,
+        ReasonCode.REJECT_SIDE,
+        ReasonCode.REJECT_INSUFFICIENT_BARS,
+    }
+)
