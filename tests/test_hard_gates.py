@@ -258,6 +258,13 @@ def test_non_chaos_regimes_pass_chaos_gate(regime: str) -> None:
     assert check_chaos_new_opens(regime).ok  # type: ignore[arg-type]
 
 
+def test_chaos_is_new_open_block_not_flatten() -> None:
+    src = inspect.getsource(check_chaos_new_opens)
+    assert "flatten" not in src.lower() or "does not flatten" in src
+    assert "force-close" in src or "does not flatten" in src
+    assert check_chaos_new_opens("chaos").reason is ReasonCode.REJECT_CHAOS
+
+
 def test_evaluate_rejects_chaos_bars(chaos_bars) -> None:
     d = evaluate_candidate(chaos_bars, valid_long(), clean_account())
     assert not d.ok

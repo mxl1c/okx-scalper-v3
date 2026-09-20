@@ -20,9 +20,30 @@ def test_strategy_and_risk_docs_exist_and_lock_numbers() -> None:
     for feat in ("atr_pct", "width", "slope", "eff", "brk"):
         assert feat in strategy
     assert "多空对称" in strategy
-    for field in ("atr_pct", "width", "slope", "eff", "brk", "reason_code", "accepted"):
+    for field in (
+        "atr_pct",
+        "width",
+        "slope",
+        "eff",
+        "brk",
+        "reason_code",
+        "accepted",
+        "y_r",
+        "exit_class",
+        "fail_tag",
+        "outcome",
+        "pnl_pct",
+        "net_pnl_pct",
+    ):
         assert field in LABEL_FIELD_DICTIONARY
         assert field in strategy
+    for token in ("sl", "invalidate", "reverse", "tp", "stale_half", "stale_flat", "replace", "manual"):
+        assert token in strategy
+    for token in ("stop_out", "fake_break", "regime_wrong", "fee_grind", "early_lock"):
+        assert token in strategy
+    assert "数值边界见 RISK §软参" in strategy
+    assert "flatten-all" in strategy
+    assert "只禁止新开仓" in strategy or "只禁止新开" in strategy
 
     assert "parallel ≤ 3" in risk or "parallel ≤3" in risk
     assert "2%" in risk
@@ -34,6 +55,9 @@ def test_strategy_and_risk_docs_exist_and_lock_numbers() -> None:
     assert "Chase ban" in risk or "追价" in risk
     assert "giveback" in risk.lower()
     assert "chaos" in risk.lower()
+    assert "flatten-all" in risk
+    assert "只禁止新开" in risk or "block new opens only" in risk
+    assert "§软参" in risk or "软参" in risk
 
 
 def test_docs_list_every_reason_code() -> None:

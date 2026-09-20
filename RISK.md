@@ -21,7 +21,7 @@
 | 止损地板 | `SL floor ≥ 1.2%` | `REJECT_SL_FLOOR` | `1.2%` 过，`< 1.2%` 拒 |
 | 冷却 | `90m` | `REJECT_COOLDOWN` | 距上次止损 `< 90` 分钟拒，满 90 分钟过 |
 | Giveback | 仅激活后 + 费用感知不亏 | `REJECT_GIVEBACK_*` | 见第 3 节 |
-| 混沌 | chaos = 禁止新开 | `REJECT_CHAOS` | 无例外 |
+| 混沌 | chaos = **只禁止新开**，不 flatten-all / 不强平已有仓 | `REJECT_CHAOS` | 无新开例外；已开仓不因此强平 |
 
 常量（不得改大、不得关掉）：
 
@@ -39,6 +39,8 @@ CHAOS_BLOCKS_NEW_OPENS        = True
 GIVEBACK_REQUIRES_ACTIVATION  = True
 GIVEBACK_FEE_AWARE_NO_LOSS    = True
 ```
+
+`CHAOS_BLOCKS_NEW_OPENS` 的语义是 **block new opens only**。chaos 不是 flatten-all，不是 force-close，也不改写已有仓的 SL / TP / giveback。已开仓继续按原几何与持仓硬门管理，直到各自离场。
 
 ---
 
@@ -84,7 +86,9 @@ Giveback 不是开仓门，是持仓管理门。
 
 ---
 
-## 6. 软参边界（不能覆盖硬门）
+## 6. 软参
+
+软参边界（不能覆盖硬门）。STRATEGY 交叉引用本节为「RISK §软参」。
 
 允许调节的键与闭区间：
 
@@ -122,7 +126,7 @@ MACD 即使打开：
 2. K 线数量  
 3. 几何 / 追价 / SL 地板 / MIN_RR  
 4. 可选 MACD 的 regime 约束  
-5. chaos 禁开  
+5. chaos 禁新开（不 flatten-all）  
 6. 日亏  
 7. 冷却  
 8. 并行  
@@ -136,5 +140,6 @@ MACD 即使打开：
 ## 8. 本仓库不做的风险动作
 
 - 不发 OKX 订单，不改杠杆，不自动减仓到交易所
+- 不因 chaos flatten-all / 强平已有仓（只拦新开）
 - 不提供「管理员 override」或环境变量松绑硬门
 - 不把密钥、`.env`、成交日志提交进 git

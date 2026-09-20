@@ -16,14 +16,16 @@
 2. **trend**（再判，拆成 `trend_up` / `trend_down`）
 3. **range**（其余）
 
-混沌一旦成立，即使斜率很大也不得改判为趋势。混沌状态下 **禁止新开仓**（见 `RISK.md`）。已有仓位只允许风控离场，不属于本脚手架的开仓路径。
+混沌一旦成立，即使斜率很大也不得改判为趋势。
 
-| 状态 | 含义 | 新开仓 |
-| --- | --- | --- |
-| `chaos` | 波动扩张且方向效率差，或 ATR% 越过混沌阈值 | 禁止 |
-| `trend_up` | 非混沌，效率与斜率同时达标，斜率为正 | 允许（过硬门后） |
-| `trend_down` | 同上，斜率为负 | 允许（过硬门后） |
-| `range` | 非混沌且未达趋势门槛 | 允许（过硬门后） |
+**chaos = 只禁止新开仓，不是 flatten-all，也不是强平已有仓。** 已开仓继续走各自的 SL / TP / giveback，本脚手架不因 chaos 发出平仓指令。见 `RISK.md`。
+
+| 状态 | 含义 | 新开仓 | 已有仓 |
+| --- | --- | --- | --- |
+| `chaos` | 波动扩张且方向效率差，或 ATR% 越过混沌阈值 | 禁止 | **不** flatten-all / 不强平 |
+| `trend_up` | 非混沌，效率与斜率同时达标，斜率为正 | 允许（过硬门后） | 不因 regime 强平 |
+| `trend_down` | 同上，斜率为负 | 允许（过硬门后） | 不因 regime 强平 |
+| `range` | 非混沌且未达趋势门槛 | 允许（过硬门后） | 不因 regime 强平 |
 
 ### 1.1 特征窗口（签名）
 
@@ -52,6 +54,8 @@
 - 否则 **range**
 
 `range_width_max` 仅作研究标注与软参边界，不参与硬门。
+
+数值边界见 RISK §软参。STRATEGY 不重复抄写上下限，以免与 RISK 漂移。
 
 ---
 
@@ -117,7 +121,7 @@ side'  = short
 - **仅** `trend_up` / `trend_down` 允许作为确认过滤。
 - `range` 与 `chaos` 启用 MACD → `REJECT_MACD_REGIME`。
 - MACD 不得把止损压到 `1.2%` 以下；否则 `REJECT_SL_FLOOR`。
-- 快/慢/信号周期必须落在分析师边界，且 `macd_fast < macd_slow`。
+- 快/慢/信号周期必须落在分析师边界，且 `macd_fast < macd_slow`。数值边界见 RISK §软参。
 
 ---
 
@@ -156,11 +160,16 @@ side'  = short
 | `mfe_pct` | 入场后最大有利偏移 / entry |
 | `mae_pct` | 入场后最大不利偏移 / entry |
 | `fee_pct_rt` | 往返手续费比例 |
-| `outcome` | `open` / `tp` / `sl` / `giveback` / `timeout` / `reject` |
-| `pnl_pct` | 毛收益 / entry（有符号） |
-| `net_pnl_pct` | `pnl_pct − fee_pct_rt` |
+| `outcome` | `open` / `tp` / `sl` / `giveback` / `timeout` / `reject`（保留；**不**替代 `exit_class`） |
+| `pnl_pct` | 毛收益 / entry（有符号；保留；**不**替代 `y_r`） |
+| `net_pnl_pct` | `pnl_pct − fee_pct_rt`（保留；`y_r` 是它的 1R 口径） |
+| `y_r` | 费用感知净盈亏 / 1R；`1R = sl_pct`。未实现盈亏时留空 |
+| `exit_class` | 单选离场类：`sl` / `invalidate` / `reverse` / `tp` / `stale_half` / `stale_flat` / `replace` / `manual` / `other` / `reject` |
+| `fail_tag` | 多选失败标签，`|` 拼接：`stop_out` / `fake_break` / `regime_wrong` / `chase` / `fee_grind` / `early_lock` / `other` |
 | `label_horizon_bars` | 离线标注前瞻根数 |
 | `spec_version` | 签名规格版本，当前 `3.0.0` |
+
+`outcome` / `pnl_pct` / `net_pnl_pct` 继续保留，供旧回放对齐；研究主标签改用 `y_r` + `exit_class` + `fail_tag`，三者不得互相顶替。
 
 实现见 `okx_scalper_v3.labels.LABEL_FIELD_DICTIONARY`。未知列名不得写入。
 
@@ -172,3 +181,4 @@ side'  = short
 - 不提交市价/限价实盘单
 - 不把软参写成「覆盖硬门」的配置项
 - 不在 chaos 下开「例外单」
+- 不因 chaos 对已有仓位 flatten-all / 强平（只拦新开）

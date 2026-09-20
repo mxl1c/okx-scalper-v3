@@ -11,6 +11,27 @@ from okx_scalper_v3.reasons import ReasonCode
 Side = Literal["long", "short"]
 Regime = Literal["chaos", "trend_up", "trend_down", "range"]
 Outcome = Literal["open", "tp", "sl", "giveback", "timeout", "reject"]
+ExitClass = Literal[
+    "sl",
+    "invalidate",
+    "reverse",
+    "tp",
+    "stale_half",
+    "stale_flat",
+    "replace",
+    "manual",
+    "other",
+    "reject",
+]
+FailTag = Literal[
+    "stop_out",
+    "fake_break",
+    "regime_wrong",
+    "chase",
+    "fee_grind",
+    "early_lock",
+    "other",
+]
 
 
 @dataclass(frozen=True)

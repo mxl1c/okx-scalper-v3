@@ -19,6 +19,7 @@ from okx_scalper_v3.types import AccountState, Decision, Regime, TradeGeometry
 
 
 def check_chaos_new_opens(regime: Regime) -> Decision:
+    """Chaos blocks new opens only. It does not flatten or force-close."""
     if CHAOS_BLOCKS_NEW_OPENS and regime == "chaos":
         return Decision(False, ReasonCode.REJECT_CHAOS, {"regime": regime})
     return Decision(True, ReasonCode.OK, {"regime": regime})

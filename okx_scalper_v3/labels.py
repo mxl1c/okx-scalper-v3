@@ -4,8 +4,35 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from okx_scalper_v3.hard_gates import FEATURE_N, SIGNED_SPEC_VERSION, TIMEFRAME
+from okx_scalper_v3.hard_gates import EDGE_EPS, FEATURE_N, SIGNED_SPEC_VERSION, TIMEFRAME
 from okx_scalper_v3.types import Decision, Features, TradeGeometry
+
+# Closed enums for research labels. outcome/pnl_* stay; these do not replace them.
+EXIT_CLASSES: frozenset[str] = frozenset(
+    {
+        "sl",
+        "invalidate",
+        "reverse",
+        "tp",
+        "stale_half",
+        "stale_flat",
+        "replace",
+        "manual",
+        "other",
+        "reject",
+    }
+)
+FAIL_TAGS: frozenset[str] = frozenset(
+    {
+        "stop_out",
+        "fake_break",
+        "regime_wrong",
+        "chase",
+        "fee_grind",
+        "early_lock",
+        "other",
+    }
+)
 
 # name -> description. Values are written as strings in the offline table.
 LABEL_FIELD_DICTIONARY: dict[str, str] = {
@@ -38,9 +65,18 @@ LABEL_FIELD_DICTIONARY: dict[str, str] = {
     "mfe_pct": "Max favorable excursion / entry after fill (offline).",
     "mae_pct": "Max adverse excursion / entry after fill (offline).",
     "fee_pct_rt": "Round-trip fee fraction used for no-loss giveback.",
-    "outcome": "open | tp | sl | giveback | timeout | reject.",
-    "pnl_pct": "Gross pnl / entry (signed, side-aware).",
-    "net_pnl_pct": "pnl_pct minus fee_pct_rt.",
+    "outcome": "open | tp | sl | giveback | timeout | reject. Kept; not a substitute for exit_class.",
+    "pnl_pct": "Gross pnl / entry (signed, side-aware). Kept; not a substitute for y_r.",
+    "net_pnl_pct": "pnl_pct minus fee_pct_rt. Kept; y_r is this quantity in R units.",
+    "y_r": "Fee-aware net PnL / 1R, where 1R = sl_pct. Empty until pnl is known.",
+    "exit_class": (
+        "Single exit enum: sl|invalidate|reverse|tp|stale_half|stale_flat|"
+        "replace|manual|other|reject."
+    ),
+    "fail_tag": (
+        "Multi-select fail tags joined by '|': stop_out|fake_break|regime_wrong|"
+        "chase|fee_grind|early_lock|other."
+    ),
     "label_horizon_bars": "Forward bars used to assign outcome (offline).",
     "spec_version": "Signed spec version string.",
 }
@@ -48,6 +84,31 @@ LABEL_FIELD_DICTIONARY: dict[str, str] = {
 
 def empty_label_row() -> dict[str, str]:
     return {key: "" for key in LABEL_FIELD_DICTIONARY}
+
+
+def compute_y_r(net_pnl_pct: float, sl_pct: float) -> float:
+    """Fee-aware net PnL expressed in R multiples (1R = signed SL distance)."""
+    if sl_pct <= EDGE_EPS:
+        raise ValueError("1R is sl_pct; cannot be zero or negative")
+    return net_pnl_pct / sl_pct
+
+
+def parse_fail_tags(raw: str) -> tuple[str, ...]:
+    if not raw:
+        return ()
+    tags = tuple(part for part in raw.split("|") if part)
+    unknown = [tag for tag in tags if tag not in FAIL_TAGS]
+    if unknown:
+        raise ValueError(f"unknown fail_tag: {unknown}")
+    return tags
+
+
+def validate_exit_class(exit_class: str) -> str:
+    if exit_class == "":
+        return ""
+    if exit_class not in EXIT_CLASSES:
+        raise ValueError(f"unknown exit_class: {exit_class}")
+    return exit_class
 
 
 def build_label_row(
@@ -69,11 +130,28 @@ def build_label_row(
     fee_pct_rt: float = 0.0,
     outcome: str = "reject",
     pnl_pct: float | None = None,
+    y_r: float | None = None,
+    exit_class: str = "",
+    fail_tag: str = "",
     label_horizon_bars: int = 0,
     extra: Mapping[str, Any] | None = None,
 ) -> dict[str, str]:
     if features.n != FEATURE_N or features.timeframe != TIMEFRAME:
         raise ValueError("label features must use signed 5m N=48 contract")
+
+    net_pnl_pct: float | None
+    if pnl_pct is None:
+        net_pnl_pct = None
+    else:
+        net_pnl_pct = pnl_pct - fee_pct_rt
+
+    if y_r is None and net_pnl_pct is not None:
+        y_r = compute_y_r(net_pnl_pct, geo.sl_pct)
+
+    if not decision.ok and exit_class == "":
+        exit_class = "reject"
+    exit_class = validate_exit_class(exit_class)
+    fail_tag = "|".join(parse_fail_tags(fail_tag))
 
     row = empty_label_row()
     row.update(
@@ -109,11 +187,10 @@ def build_label_row(
             "fee_pct_rt": f"{fee_pct_rt:.10f}",
             "outcome": outcome if decision.ok else "reject",
             "pnl_pct": "" if pnl_pct is None else f"{pnl_pct:.10f}",
-            "net_pnl_pct": (
-                ""
-                if pnl_pct is None
-                else f"{(pnl_pct - fee_pct_rt):.10f}"
-            ),
+            "net_pnl_pct": "" if net_pnl_pct is None else f"{net_pnl_pct:.10f}",
+            "y_r": "" if y_r is None else f"{y_r:.10f}",
+            "exit_class": exit_class,
+            "fail_tag": fail_tag,
             "label_horizon_bars": str(label_horizon_bars),
             "spec_version": SIGNED_SPEC_VERSION,
         }
